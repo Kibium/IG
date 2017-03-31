@@ -1,0 +1,9 @@
+﻿  main.cpp
+c:\users\toni\desktop\practica1\src\main.cpp(263): warning C4305: 'argumento': truncamiento de 'double' a 'GLclampf'
+c:\users\toni\desktop\practica1\src\main.cpp(278): warning C4244: 'argumento': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\src\main.cpp(287): warning C4305: '=': truncamiento de 'double' a 'float'
+c:\users\toni\desktop\practica1\src\main.cpp(289): warning C4305: '=': truncamiento de 'double' a 'float'
+c:\users\toni\desktop\practica1\src\main.cpp(359): warning C4305: '+=': truncamiento de 'double' a 'float'
+c:\users\toni\desktop\practica1\src\main.cpp(362): warning C4305: '-=': truncamiento de 'double' a 'float'
+  Proyecto.vcxproj -> C:\Users\Toni\Desktop\Practica1\Debug\Practica1.exe
+  Proyecto.vcxproj -> C:\Users\Toni\Desktop\Practica1\Debug\Practica1.pdb (Full PDB)
