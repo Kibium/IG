@@ -17,8 +17,9 @@ const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
 GLsizei numBuffers = 3;
 float switcher = 0.0;
-float angle = 0.0;
-bool rotateLeft, rotateRight; 
+float angleX = 0.0;
+float angleY = 0.0;
+bool rotateLeft, rotateRight, rotateUp, rotateDown; 
 float aspectRatio = WIDTH / HEIGHT;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -206,30 +207,34 @@ int main() {
 	// Crear los VBO, VAO y EBO y reservar memoria para el VAO, VBO y EBO
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	glBindVertexArray(VAO); 
+		GLuint VBO;
+		glGenBuffers(1, &VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		//delete[] vertexBufferObject;
+
+		GLuint EBO;
+		glGenBuffers(1, &EBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBufferObject), indexBufferObject, GL_STATIC_DRAW); // 1 = SIZEOF INDEXBUFFEROBJECT  0 = INDEXBUFFEROBJECT
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(6 * sizeof(GLfloat)));
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(2);
 	
-
-	GLuint VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	//delete[] vertexBufferObject;
-
-	//GLuint VBO2;
-	//glGenBuffers(1, &VBO2);
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(CubesPositionBuffer), CubesPositionBuffer, GL_STATIC_DRAW);
 	
-	GLuint EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBufferObject), indexBufferObject, GL_STATIC_DRAW); // 1 = SIZEOF INDEXBUFFEROBJECT  0 = INDEXBUFFEROBJECT
+	GLuint VAO2;
+	glGenBuffers(1, &VAO2);
+	glBindVertexArray(VAO2); 
+		GLuint VBO2;
+		glGenBuffers(1, &VBO2);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferCube), VertexBufferCube, GL_STATIC_DRAW);
+		//delete[] vertexBufferObject;
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0); 
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(0); 
-	glEnableVertexAttribArray(2);
-	glBindVertexArray(0);
+
 
 	GLint variableShader =  glGetUniformLocation(squareShader.Program, "Sion"); //enllaçar amb variable dins els " "
 	GLint imgSwitcher = glGetUniformLocation(textureShader.Program, "alternador");
@@ -238,12 +243,15 @@ int main() {
 	GLint uniProj = glGetUniformLocation(textureShader.Program, "proj");
 
 	GLint uniModel = glGetUniformLocation(cubeShader.Program, "model");
+	GLint uniModel2 = glGetUniformLocation(cubeShader.Program, "model2");
 	GLint uniView2 = glGetUniformLocation(cubeShader.Program, "view");
 	GLint uniProj2 = glGetUniformLocation(cubeShader.Program, "proj");
 
 	//Matrius
 
-	glm::mat4 trans;
+	glm::mat4 rotY;
+	glm::mat4 rotX;
+
 	glm::mat4 view = glm::lookAt(
 		glm::vec3(1.2f, 1.2f, 1.2f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -278,15 +286,24 @@ int main() {
 		glUniform1f(variableShader, abs(sin(glfwGetTime())/2)); 
 		glUniform1f(imgSwitcher, switcher);
 
-		trans = glm::rotate(trans, glm::radians(angle), glm::vec3(0.0f, 0.0f, 1.0f));
-		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(trans));
+
+		rotY = glm::rotate(rotY, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
+		rotY *= glm::rotate(rotX, glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f)); // al multiplicar la matriz, se adquiere la propiedad de rotar en X
+
+		//glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(rotY));
+		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(rotY));
 		glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
 		//comprovar si rotar foto
 		if (rotateLeft)
-			angle = 0.1;
+			angleY = 0.1;
 		if (rotateRight)
-			angle = -0.1;
+			angleY = -0.1;
+
+		if (rotateDown)
+			angleX = 0.1;
+		if (rotateUp)
+			angleX = -0.1;
 		
 		// mesclar foto
 		if (switcher > 1) 
@@ -308,7 +325,8 @@ int main() {
 
 		//pintar el VAO
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*)0);
-		glDrawArrays(GL_TRIANGLES, 0, 1);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 		// cuadrat que s'estira
 		if (WIDEFRAME) {
 			
@@ -355,25 +373,41 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		else if (key == GLFW_KEY_W && action == GLFW_PRESS && WIDEFRAME == true) {
 			WIDEFRAME = false;
 		}
-		else if ((key == GLFW_KEY_UP && action == GLFW_PRESS)) {
-			switcher += 0.1;
-		}
-		else if ((key == GLFW_KEY_DOWN && action == GLFW_PRESS)) {
+		else if ((key == GLFW_KEY_1 && action == GLFW_PRESS)) {
 			switcher -= 0.1;
+		}
+		else if ((key == GLFW_KEY_2 && action == GLFW_PRESS)) {
+			switcher += 0.1;
 		}
 		else if ((key == GLFW_KEY_RIGHT && action == GLFW_PRESS)) {
 			rotateRight = true;
 		}
 		else if ((key == GLFW_KEY_RIGHT && action == GLFW_RELEASE)) {
 			rotateRight = false;
-			angle = 0;
+			angleY = 0;
 		}
 		else if ((key == GLFW_KEY_LEFT && action == GLFW_PRESS)) {
 			rotateLeft = true;
 		}
 		else if ((key == GLFW_KEY_LEFT && action == GLFW_RELEASE)) {
 			rotateLeft = false;
-			angle = 0;
+			angleY = 0;
+		}
+
+
+		else if ((key == GLFW_KEY_UP && action == GLFW_PRESS)) {
+			rotateUp = true;
+		}
+		else if ((key == GLFW_KEY_UP && action == GLFW_RELEASE)) {
+			rotateUp = false;
+			angleX = 0;
+		}
+		else if ((key == GLFW_KEY_DOWN && action == GLFW_PRESS)) {
+			rotateDown = true;
+		}
+		else if ((key == GLFW_KEY_DOWN && action == GLFW_RELEASE)) {
+			rotateDown = false;
+			angleX = 0;
 		}
 		
 }
