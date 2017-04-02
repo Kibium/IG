@@ -26,7 +26,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main() {
 	//initGLFW
-	glEnable(GL_DEPTH_TEST);
 	if (!glfwInit())
 		::exit(EXIT_FAILURE);
 
@@ -207,33 +206,37 @@ int main() {
 	// Crear los VBO, VAO y EBO y reservar memoria para el VAO, VBO y EBO
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO); 
-		GLuint VBO;
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-		//delete[] vertexBufferObject;
+	glBindVertexArray(VAO);
+	GLuint VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);				//vao per pintar el plà i tot lo altre
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferCube), VertexBufferCube, GL_STATIC_DRAW);	// vao per pintar el cub
 
-		GLuint EBO;
-		glGenBuffers(1, &EBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBufferObject), indexBufferObject, GL_STATIC_DRAW); // 1 = SIZEOF INDEXBUFFEROBJECT  0 = INDEXBUFFEROBJECT
+	//delete[] vertexBufferObject;
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(6 * sizeof(GLfloat)));
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(2);
-	
-	
-	GLuint VAO2;
-	glGenBuffers(1, &VAO2);
-	glBindVertexArray(VAO2); 
-		GLuint VBO2;
-		glGenBuffers(1, &VBO2);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferCube), VertexBufferCube, GL_STATIC_DRAW);
-		//delete[] vertexBufferObject;
+	GLuint EBO;
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexBufferObject), indexBufferObject, GL_STATIC_DRAW);
 
+	//////////////Starts config for the plane//////////////////////
+/*
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(2);*/
+
+	//////////////Finishes config for the plane//////////////////////
+
+	//////////////Starts config for the cube//////////////////////
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(2);
+
+	//////////////Finishes config for the cube//////////////////////
 
 
 	GLint variableShader =  glGetUniformLocation(squareShader.Program, "Sion"); //enllaçar amb variable dins els " "
@@ -260,6 +263,7 @@ int main() {
 	glm::mat4 proj = glm::perspective(glm::radians(60.0f), aspectRatio, 1.0f, 10.0f);
 
 	
+	glEnable(GL_DEPTH_TEST);
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window)) {
