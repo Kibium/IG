@@ -12,6 +12,7 @@
 #include <fstream>
 #include <string>
 #include "../Shader.h"
+#include <chrono>
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
@@ -22,10 +23,13 @@ float angleY = 0.0;
 bool rotateLeft, rotateRight, rotateUp, rotateDown; 
 float aspectRatio = WIDTH / HEIGHT;
 
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 int main() {
 	//initGLFW
+	auto t_start = std::chrono::high_resolution_clock::now();
+
 	if (!glfwInit())
 		::exit(EXIT_FAILURE);
 
@@ -178,7 +182,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	img = SOIL_load_image("gr8.png", &width, &height, 0, SOIL_LOAD_RGB);
+	img = SOIL_load_image("ying.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
 	SOIL_free_image_data(img);
 	
@@ -192,7 +196,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	img = SOIL_load_image("fire.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	img = SOIL_load_image("dick.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
 	SOIL_free_image_data(img);
 	
@@ -246,19 +250,18 @@ int main() {
 	GLint uniProj = glGetUniformLocation(textureShader.Program, "proj");
 
 	GLint uniModel = glGetUniformLocation(cubeShader.Program, "model");
-	GLint uniModel2 = glGetUniformLocation(cubeShader.Program, "model2");
 	GLint uniView2 = glGetUniformLocation(cubeShader.Program, "view");
 	GLint uniProj2 = glGetUniformLocation(cubeShader.Program, "proj");
 
 	//Matrius
 
-	glm::mat4 rotY;
-	glm::mat4 rotX;
-
-	glm::mat4 view = glm::lookAt(
-		glm::vec3(1.2f, 1.2f, 1.2f),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::mat4 model, helper;
+	
+	 glm::mat4 view = glm::lookAt(
+        glm::vec3(1.5f, 1.5f, 1.5f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f)
+    );
 
 	glm::mat4 proj = glm::perspective(glm::radians(60.0f), aspectRatio, 1.0f, 10.0f);
 
@@ -267,6 +270,7 @@ int main() {
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window)) {
+
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // borrar buffer de colors i de profunditat
@@ -281,6 +285,11 @@ int main() {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
+		//Gets the time
+		auto t_now = std::chrono::high_resolution_clock::now();
+		float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
+		//time -= time - 0.0003;
+
 		//establecer el shader
 		//squareShader.USE(); //descomentar aixo si volem veure es quadrat
 	    //textureShader.USE();
@@ -289,25 +298,20 @@ int main() {
 		// passar valors a les variables dels shaders
 		glUniform1f(variableShader, abs(sin(glfwGetTime())/2)); 
 		glUniform1f(imgSwitcher, switcher);
-
-
-		rotY = glm::rotate(rotY, glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
-		rotY *= glm::rotate(rotX, glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f)); // al multiplicar la matriz, se adquiere la propiedad de rotar en X
-
-		//glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(rotY));
-		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(rotY));
+		
 		glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
+
 		//comprovar si rotar foto
 		if (rotateLeft)
-			angleY = 0.1;
+			angleY += 0.2;
 		if (rotateRight)
-			angleY = -0.1;
+			angleY -= 0.2;
 
 		if (rotateDown)
-			angleX = 0.1;
+			angleX -= 0.2;
 		if (rotateUp)
-			angleX = -0.1;
+			angleX += 0.2;
 		
 		// mesclar foto
 		if (switcher > 1) 
@@ -325,11 +329,33 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(textureShader.Program, "tex2"), 1);
 
-		glBindVertexArray(VAO);
+		glBindVertexArray(VAO); {
+
+			glm::mat4 trans, rot, rot1,  rot2;
+			trans = glm::translate(trans, CubesPositionBuffer[0]);
+			rot1 = glm::rotate(rot, glm::radians(angleY), glm::vec3(0.0f, 1.f, 0.0f)); 
+			rot2 = glm::rotate(rot, glm::radians(angleX), glm::vec3(1.0f, 0.f, 0.0f)); 
+			rot = rot1*rot2;
+			model = trans * rot;
+			glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+
+			for (int i = 1; i < 10; i++) {
+				glm::mat4 trans, rot;
+				trans = glm::translate(trans, CubesPositionBuffer[i]);
+				rot = glm::rotate(rot, (-time)*glm::radians(180.f), glm::vec3(1.0f, 1.f, 0.0f)); 
+				model = trans * rot;
+				glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				glDrawArrays(GL_TRIANGLES, 0, 36);
+			}
+		
+			
+		}
 
 		//pintar el VAO
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*)0);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// cuadrat que s'estira
 		if (WIDEFRAME) {
@@ -388,14 +414,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 		else if ((key == GLFW_KEY_RIGHT && action == GLFW_RELEASE)) {
 			rotateRight = false;
-			angleY = 0;
+			//angleY = 0;
 		}
 		else if ((key == GLFW_KEY_LEFT && action == GLFW_PRESS)) {
 			rotateLeft = true;
 		}
 		else if ((key == GLFW_KEY_LEFT && action == GLFW_RELEASE)) {
 			rotateLeft = false;
-			angleY = 0;
+			//angleY = 0;
 		}
 
 
@@ -404,14 +430,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 		else if ((key == GLFW_KEY_UP && action == GLFW_RELEASE)) {
 			rotateUp = false;
-			angleX = 0;
+			//angleX = 0;
 		}
 		else if ((key == GLFW_KEY_DOWN && action == GLFW_PRESS)) {
 			rotateDown = true;
 		}
 		else if ((key == GLFW_KEY_DOWN && action == GLFW_RELEASE)) {
 			rotateDown = false;
-			angleX = 0;
+			//angleX = 0;
 		}
 		
 }
