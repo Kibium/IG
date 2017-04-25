@@ -12,9 +12,7 @@ uniform sampler2D coolTexture;
 
 void main()
 {
-	
 
 	color = vec4(abs(newPosition.x), 1-abs(newPosition.x),newPosition.y+0.5, 1);
 	
-
 }

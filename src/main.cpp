@@ -22,14 +22,24 @@ float angleX = 0.0;
 float angleY = 0.0;
 bool rotateLeft, rotateRight, rotateUp, rotateDown; 
 float aspectRatio = WIDTH / HEIGHT;
+float timeNow, lastTime, deltaTime; // timemit
+bool moveForward, moveBack, moveLeft, moveRight = false;
 
+glm::vec3 cameraPos, target, direction, right, up;
+glm::vec3 camFront = glm::vec3(0.f, 0.f, -1.f);
+const int speedConstant = 10;
+float camSpeed = 0;
+float pitch, yaw = 50; // angles de rotació de sa càmera
 
+void mouseController(GLFWwindow* window, double xpos, double ypos);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void scroller(GLFWwindow* window, double xoffset, double yoffset);
+
 
 int main() {
 	//initGLFW
 	auto t_start = std::chrono::high_resolution_clock::now();
-
+	
 	if (!glfwInit())
 		::exit(EXIT_FAILURE);
 
@@ -38,7 +48,6 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-
 	//create a window
 	GLFWwindow* window;
 	window = glfwCreateWindow(WIDTH, HEIGHT, "Trasform.", nullptr, nullptr);
@@ -65,7 +74,8 @@ int main() {
 
 	//set function when callback
 	glfwSetKeyCallback(window, key_callback);
-
+	glfwSetCursorPosCallback(window, mouseController);
+	//glfwSetScrollCallback(window, scroller);
 
 	//fondo
 	glClearColor(0.5, 0, 0.5, 1.0);
@@ -253,24 +263,41 @@ int main() {
 	GLint uniView2 = glGetUniformLocation(cubeShader.Program, "view");
 	GLint uniProj2 = glGetUniformLocation(cubeShader.Program, "proj");
 
+	
+
+	//Camera
+
+	cameraPos = glm::vec3(0.f, 0.f, 3.f);// posicio de sa càmara
+	target = glm::vec3(0.0f, 0.0f, 0.0f);
+	
+	direction = glm::normalize(cameraPos - target);
+
+	::right = glm::normalize(glm::cross(direction, glm::vec3(0.f, 1.f, 0.f)));
+
+	up = glm::cross(direction, ::right);
+
+	//glm::mat4 lookAt = glm::lookAt(cameraPos, direction, up);
+
 	//Matrius
 
 	glm::mat4 model, helper;
-	
-	 glm::mat4 view = glm::lookAt(
-        glm::vec3(1.5f, 1.5f, 1.5f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f)
-    );
 
-	glm::mat4 proj = glm::perspective(glm::radians(60.0f), aspectRatio, 1.0f, 10.0f);
-
+	GLfloat radio = 8.0f;
 	
+	glm::mat4 view;
+	glm::mat4 proj = glm::perspective(glm::radians(60.0f), aspectRatio, 1.0f, 1000.0f);
+
 	glEnable(GL_DEPTH_TEST);
+
+	//Raton
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window)) {
-
+		lastTime= glfwGetTime();
+		
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // borrar buffer de colors i de profunditat
@@ -289,6 +316,16 @@ int main() {
 		auto t_now = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
 		//time -= time - 0.0003;
+
+		//Coses de sa càmera
+		GLfloat X = sin(glfwGetTime()) * radio;
+		GLfloat Z = cos(glfwGetTime()) * radio;
+
+		//direction.x = cos(glm::radians(yaw)*cos(glm::radians(pitch)));
+		//direction.y = cos(glm::radians(pitch));
+		//direction.z = sin(glm::radians(yaw)*cos(glm::radians(pitch)));
+
+		view = glm::lookAt(cameraPos, cameraPos + camFront, up);
 
 		//establecer el shader
 		//squareShader.USE(); //descomentar aixo si volem veure es quadrat
@@ -320,6 +357,16 @@ int main() {
 		if (switcher < 0.1)
 			switcher = 0;
 
+		//comprovar rotar camara
+
+		if (moveForward) cameraPos -= direction*camSpeed;
+		if (moveBack) cameraPos += direction*camSpeed;
+		if (moveLeft) cameraPos += glm::normalize(cross(direction, up))* camSpeed;
+		if (moveRight) cameraPos -= glm::normalize(cross(direction, up))* camSpeed;
+
+
+		
+
 		//activar textures
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
@@ -330,17 +377,18 @@ int main() {
 		glUniform1i(glGetUniformLocation(textureShader.Program, "tex2"), 1);
 
 		glBindVertexArray(VAO); {
-
+			//cubo controlable
 			glm::mat4 trans, rot, rot1,  rot2;
-			trans = glm::translate(trans, CubesPositionBuffer[0]);
-			rot1 = glm::rotate(rot, glm::radians(angleY), glm::vec3(0.0f, 1.f, 0.0f)); 
-			rot2 = glm::rotate(rot, glm::radians(angleX), glm::vec3(1.0f, 0.f, 0.0f)); 
-			rot = rot1*rot2;
-			model = trans * rot;
-			glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
+			trans = glm::translate(trans, CubesPositionBuffer[0]); // matriu de translació
+			rot1 = glm::rotate(rot, glm::radians(angleY), glm::vec3(0.0f, 1.f, 0.0f)); // matriu que controla rotació en Y
+			rot2 = glm::rotate(rot, glm::radians(angleX), glm::vec3(1.0f, 0.f, 0.0f)); // matriu qu controla rotació en X
+			rot = rot1*rot2; // matriu resultant de roatr en els dos eixos
+			model = trans * rot; // model és igual a translladar i rotar
+			glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model)); // transferir el que val model al uniform on apunta uniModel
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 
+			//cubos independents
 			for (int i = 1; i < 10; i++) {
 				glm::mat4 trans, rot;
 				trans = glm::translate(trans, CubesPositionBuffer[i]);
@@ -354,6 +402,9 @@ int main() {
 			
 		}
 
+		// posició de sa càmera
+		camSpeed = speedConstant*deltaTime*3;
+		cout << cameraPos.x <<  " " << cameraPos.y << " " << cameraPos.z<< endl;
 		//pintar el VAO
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*)0);
 
@@ -376,10 +427,14 @@ int main() {
 			glBindVertexArray(0);
 
 		}
+		timeNow = glfwGetTime();
+		deltaTime = timeNow - lastTime;
 		// Swap the screen buffers. !!!!!!!!Molt important!!!!!
 		glfwSwapBuffers(window);
 		//comprueba que algun disparador se haya activado (tales como el teclado, raton, etc)
 		glfwSetKeyCallback(window, key_callback);
+		glfwSetCursorPosCallback(window, mouseController);
+		//glfwSetScrollCallback(window, scroller);
 		glfwPollEvents();
 	}
 
@@ -396,11 +451,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) 
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
-		else if (key == GLFW_KEY_W && action == GLFW_PRESS && WIDEFRAME == false) {
+		/*else if (key == GLFW_KEY_F && action == GLFW_PRESS && WIDEFRAME == false) {
 			WIDEFRAME = true;
 
 		}
-		else if (key == GLFW_KEY_W && action == GLFW_PRESS && WIDEFRAME == true) {
+		else if (key == GLFW_KEY_F && action == GLFW_PRESS && WIDEFRAME == true) {
 			WIDEFRAME = false;
 		}
 		else if ((key == GLFW_KEY_1 && action == GLFW_PRESS)) {
@@ -414,30 +469,67 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 		else if ((key == GLFW_KEY_RIGHT && action == GLFW_RELEASE)) {
 			rotateRight = false;
-			//angleY = 0;
 		}
 		else if ((key == GLFW_KEY_LEFT && action == GLFW_PRESS)) {
 			rotateLeft = true;
 		}
 		else if ((key == GLFW_KEY_LEFT && action == GLFW_RELEASE)) {
 			rotateLeft = false;
-			//angleY = 0;
 		}
-
 
 		else if ((key == GLFW_KEY_UP && action == GLFW_PRESS)) {
 			rotateUp = true;
 		}
 		else if ((key == GLFW_KEY_UP && action == GLFW_RELEASE)) {
 			rotateUp = false;
-			//angleX = 0;
 		}
 		else if ((key == GLFW_KEY_DOWN && action == GLFW_PRESS)) {
 			rotateDown = true;
 		}
 		else if ((key == GLFW_KEY_DOWN && action == GLFW_RELEASE)) {
 			rotateDown = false;
-			//angleX = 0;
+		}*/
+
+		if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+			moveForward = true;
+			// // allows camera to move forward and back
+
+		}
+
+		if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
+			moveForward = false;
+
+		}
+		if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+			moveBack = true;
+			// // allows camera to move forward and back
+
+		}
+
+		if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
+			moveBack = false;
+
+		}
+		if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+			moveLeft = true;
+			//
+		}
+
+		if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
+			moveLeft = false;
+		}
+
+		if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+			moveRight = true;
+			//
+		}
+		if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
+			moveRight = false;
 		}
 		
+		
+}
+
+void mouseController(GLFWwindow* window, double xpos, double ypos) { // working!
+	glfwGetCursorPos(window, &xpos, &ypos);
 }
