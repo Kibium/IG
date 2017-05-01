@@ -23,6 +23,7 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camarah.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>

@@ -1,13 +1,23 @@
 ﻿  main.cpp
-c:\users\toni\desktop\practica1\src\main.cpp(299): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
-c:\users\toni\desktop\practica1\src\main.cpp(306): warning C4305: 'argumento': truncamiento de 'double' a 'GLclampf'
-c:\users\toni\desktop\practica1\src\main.cpp(321): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
-c:\users\toni\desktop\practica1\src\main.cpp(322): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\camarah.h(101): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\camarah.h(102): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\camarah.h(105): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\camarah.h(106): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\camarah.h(107): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\camarah.h(108): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\camarah.h(139): warning C4244: '-=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\src\main.cpp(26): warning C4305: 'argumento': truncamiento de 'double' a 'GLfloat'
+c:\users\toni\desktop\practica1\src\main.cpp(297): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+c:\users\toni\desktop\practica1\src\main.cpp(304): warning C4305: 'argumento': truncamiento de 'double' a 'GLclampf'
+c:\users\toni\desktop\practica1\src\main.cpp(318): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+c:\users\toni\desktop\practica1\src\main.cpp(319): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
 c:\users\toni\desktop\practica1\src\main.cpp(336): warning C4244: 'argumento': conversión de 'double' a 'GLfloat'; posible pérdida de datos
 c:\users\toni\desktop\practica1\src\main.cpp(344): warning C4305: '+=': truncamiento de 'double' a 'float'
 c:\users\toni\desktop\practica1\src\main.cpp(346): warning C4305: '-=': truncamiento de 'double' a 'float'
 c:\users\toni\desktop\practica1\src\main.cpp(349): warning C4305: '-=': truncamiento de 'double' a 'float'
 c:\users\toni\desktop\practica1\src\main.cpp(351): warning C4305: '+=': truncamiento de 'double' a 'float'
-c:\users\toni\desktop\practica1\src\main.cpp(430): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+c:\users\toni\desktop\practica1\src\main.cpp(428): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+c:\users\toni\desktop\practica1\src\main.cpp(462): warning C4305: '-=': truncamiento de 'double' a 'float'
+c:\users\toni\desktop\practica1\src\main.cpp(465): warning C4305: '+=': truncamiento de 'double' a 'float'
   Proyecto.vcxproj -> C:\Users\Toni\Desktop\Practica1\Debug\Practica1.exe
   Proyecto.vcxproj -> C:\Users\Toni\Desktop\Practica1\Debug\Practica1.pdb (Full PDB)

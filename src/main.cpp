@@ -2,11 +2,7 @@
 #define GLEW_STATIC
 #include <GL\glew.h>
 //GLFW
-#include <GLFW\glfw3.h>
-#include "../soil/src/SOIL.h"
-#include "glm.hpp"
-#include "../glm/gtc/matrix_transform.hpp"
-#include "../glm/gtc/type_ptr.hpp"
+#include "../Camarah.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -23,17 +19,18 @@ float angleY = 0.0;
 bool rotateLeft, rotateRight, rotateUp, rotateDown; 
 float aspectRatio = WIDTH / HEIGHT;
 float timeNow, lastTime, deltaTime; // timemit
-bool moveForward, moveBack, moveLeft, moveRight = false;
+bool firstMouse = true;
+GLfloat lastX = 400, lastY = 300;
 
-glm::vec3 cameraPos, target, direction, right, up;
-glm::vec3 camFront = glm::vec3(0.f, 0.f, -1.f);
-const int speedConstant = 10;
-float camSpeed = 0;
-float pitch, yaw = 50; // angles de rotació de sa càmera
+
+Camara cam(glm::vec3(0.0f, 0.0f, 3.f), glm::normalize(glm::vec3(0.f, 0.f, 3.f) - glm::vec3(0.f, 0.f, 0.f)), 0.1, 60);
+
+float pitch, yaw = 0; // angles de rotació de sa càmera
 
 void mouseController(GLFWwindow* window, double xpos, double ypos);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void scroller(GLFWwindow* window, double xoffset, double yoffset);
+void Do_Moviment(GLFWwindow *window);
 
 
 int main() {
@@ -73,9 +70,12 @@ int main() {
 	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 
 	//set function when callback
+	Do_Moviment(window);
+
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetCursorPosCallback(window, mouseController);
-	//glfwSetScrollCallback(window, scroller);
+	glfwSetScrollCallback(window, scroller);
+
 
 	//fondo
 	glClearColor(0.5, 0, 0.5, 1.0);
@@ -267,7 +267,7 @@ int main() {
 
 	//Camera
 
-	cameraPos = glm::vec3(0.f, 0.f, 3.f);// posicio de sa càmara
+	/*cameraPos = glm::vec3(0.f, 0.f, 3.f);// posicio de sa càmara
 	target = glm::vec3(0.0f, 0.0f, 0.0f);
 	
 	direction = glm::normalize(cameraPos - target);
@@ -277,7 +277,7 @@ int main() {
 	up = glm::cross(direction, ::right);
 
 	//glm::mat4 lookAt = glm::lookAt(cameraPos, direction, up);
-
+*/
 	//Matrius
 
 	glm::mat4 model, helper;
@@ -285,13 +285,11 @@ int main() {
 	GLfloat radio = 8.0f;
 	
 	glm::mat4 view;
-	glm::mat4 proj = glm::perspective(glm::radians(60.0f), aspectRatio, 1.0f, 1000.0f);
-
 	glEnable(GL_DEPTH_TEST);
 
 	//Raton
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
 	//bucle de dibujado
@@ -315,19 +313,21 @@ int main() {
 		//Gets the time
 		auto t_now = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-		//time -= time - 0.0003;
 
 		//Coses de sa càmera
 		GLfloat X = sin(glfwGetTime()) * radio;
 		GLfloat Z = cos(glfwGetTime()) * radio;
 
-		//direction.x = cos(glm::radians(yaw)*cos(glm::radians(pitch)));
-		//direction.y = cos(glm::radians(pitch));
-		//direction.z = sin(glm::radians(yaw)*cos(glm::radians(pitch)));
+		/*direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+		direction.y = sin(glm::radians(pitch));
+		direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+		*/
+		glm::mat4 proj = glm::perspective(glm::radians(cam.GetFOV()), aspectRatio, 1.0f, 1000.0f);
 
-		view = glm::lookAt(cameraPos, cameraPos + camFront, up);
+		view = cam.LookAt();
 
 		//establecer el shader
+
 		//squareShader.USE(); //descomentar aixo si volem veure es quadrat
 	    //textureShader.USE();
 		cubeShader.USE();
@@ -359,14 +359,12 @@ int main() {
 
 		//comprovar rotar camara
 
-		if (moveForward) cameraPos -= direction*camSpeed;
-		if (moveBack) cameraPos += direction*camSpeed;
+
+		/*if (moveForward) cameraPos += direction*camSpeed;
+		if (moveBack) cameraPos -= direction*camSpeed;
 		if (moveLeft) cameraPos += glm::normalize(cross(direction, up))* camSpeed;
 		if (moveRight) cameraPos -= glm::normalize(cross(direction, up))* camSpeed;
-
-
-		
-
+		*/
 		//activar textures
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
@@ -403,8 +401,8 @@ int main() {
 		}
 
 		// posició de sa càmera
-		camSpeed = speedConstant*deltaTime*3;
-		cout << cameraPos.x <<  " " << cameraPos.y << " " << cameraPos.z<< endl;
+		//camSpeed = speedConstant*deltaTime*3;
+
 		//pintar el VAO
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*)0);
 
@@ -432,9 +430,7 @@ int main() {
 		// Swap the screen buffers. !!!!!!!!Molt important!!!!!
 		glfwSwapBuffers(window);
 		//comprueba que algun disparador se haya activado (tales como el teclado, raton, etc)
-		glfwSetKeyCallback(window, key_callback);
-		glfwSetCursorPosCallback(window, mouseController);
-		//glfwSetScrollCallback(window, scroller);
+		Do_Moviment(window);
 		glfwPollEvents();
 	}
 
@@ -446,12 +442,16 @@ int main() {
 	::exit(EXIT_SUCCESS);
 }
 
+void Do_Moviment(GLFWwindow *window) {
+	cam.DoMoviment(window, deltaTime);
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	//TODO, comprobar que la tecla pulsada es escape para cerrar la aplicación y la tecla w para cambiar a modo widwframe
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) 
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
-		/*else if (key == GLFW_KEY_F && action == GLFW_PRESS && WIDEFRAME == false) {
+		else if (key == GLFW_KEY_F && action == GLFW_PRESS && WIDEFRAME == false) {
 			WIDEFRAME = true;
 
 		}
@@ -488,8 +488,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 		else if ((key == GLFW_KEY_DOWN && action == GLFW_RELEASE)) {
 			rotateDown = false;
-		}*/
-
+		}
+		/*
 		if (key == GLFW_KEY_W && action == GLFW_PRESS) {
 			moveForward = true;
 			// // allows camera to move forward and back
@@ -526,10 +526,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
 			moveRight = false;
 		}
-		
+		*/
 		
 }
 
 void mouseController(GLFWwindow* window, double xpos, double ypos) { // working!
-	glfwGetCursorPos(window, &xpos, &ypos);
+
+	cam.MouseMove(window, xpos, ypos);
+}
+
+
+//Zoom. Cambia el FOV
+void scroller(GLFWwindow *window, double xoffset, double yoffset) {
+
+	cam.MouseScroll(window, xoffset, yoffset);
+
+
 }
