@@ -29,6 +29,12 @@
     <ClInclude Include="Camarah.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\SimpleFragmentShader.fragmentshader">
@@ -47,6 +53,12 @@
       <Filter>Archivos de recursos</Filter>
     </None>
     <None Include="src\cubeVertex.v">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\modelFrag.f">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\modelVertex.v">
       <Filter>Archivos de recursos</Filter>
     </None>
   </ItemGroup>

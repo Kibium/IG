@@ -7,8 +7,9 @@
 #include <sstream>
 #include <fstream>
 #include <string>
-#include "../Shader.h"
 #include <chrono>
+#include "../Model.h"
+
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
@@ -21,8 +22,7 @@ float aspectRatio = WIDTH / HEIGHT;
 float timeNow, lastTime, deltaTime; // timemit
 bool firstMouse = true;
 GLfloat lastX = 400, lastY = 300;
-
-
+bool mo1, mo2, mo3 = false;
 Camara cam(glm::vec3(0.0f, 0.0f, 3.f), glm::normalize(glm::vec3(0.f, 0.f, 3.f) - glm::vec3(0.f, 0.f, 0.f)), 0.1, 60);
 
 float pitch, yaw = 0; // angles de rotació de sa càmera
@@ -36,7 +36,7 @@ void Do_Moviment(GLFWwindow *window);
 int main() {
 	//initGLFW
 	auto t_start = std::chrono::high_resolution_clock::now();
-	
+	mo1 = true;
 	if (!glfwInit())
 		::exit(EXIT_FAILURE);
 
@@ -84,6 +84,13 @@ int main() {
 	Shader squareShader("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
 	Shader textureShader("./src/textureVertex.vertexshader", "./src/textureFragment.fragmentshader");
 	Shader cubeShader("./src/cubeVertex.v", "./src/cubeFragment.f");
+	Shader modelShader("./src/modelVertex.v", "./src/modelFrag.f");
+
+	//Model
+
+	Model m1("./Models/m1/nanosuit.obj");
+	Model m2("./Models/m2/eagle.obj");
+	Model m3("./Models/m3/dog.obj");
 
 	// Definir el buffer de vertices
 
@@ -330,7 +337,8 @@ int main() {
 
 		//squareShader.USE(); //descomentar aixo si volem veure es quadrat
 	    //textureShader.USE();
-		cubeShader.USE();
+		//cubeShader.USE();
+		modelShader.USE();
 
 		// passar valors a les variables dels shaders
 		glUniform1f(variableShader, abs(sin(glfwGetTime())/2)); 
@@ -375,7 +383,16 @@ int main() {
 		glUniform1i(glGetUniformLocation(textureShader.Program, "tex2"), 1);
 
 		glBindVertexArray(VAO); {
+
+
+
 			//cubo controlable
+			if(mo1)
+			m1.Draw(modelShader);
+			if(mo2)
+				m2.Draw(modelShader);
+			if(mo3)
+				m3.Draw(modelShader);
 			glm::mat4 trans, rot, rot1,  rot2;
 			trans = glm::translate(trans, CubesPositionBuffer[0]); // matriu de translació
 			rot1 = glm::rotate(rot, glm::radians(angleY), glm::vec3(0.0f, 1.f, 0.0f)); // matriu que controla rotació en Y
@@ -385,8 +402,8 @@ int main() {
 			glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model)); // transferir el que val model al uniform on apunta uniModel
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
-
-			//cubos independents
+//cubos independents
+#if(false)
 			for (int i = 1; i < 10; i++) {
 				glm::mat4 trans, rot;
 				trans = glm::translate(trans, CubesPositionBuffer[i]);
@@ -397,9 +414,9 @@ int main() {
 				glDrawArrays(GL_TRIANGLES, 0, 36);
 			}
 		
-			
+#endif		
 		}
-
+		
 		// posició de sa càmera
 		//camSpeed = speedConstant*deltaTime*3;
 
@@ -458,12 +475,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		else if (key == GLFW_KEY_F && action == GLFW_PRESS && WIDEFRAME == true) {
 			WIDEFRAME = false;
 		}
-		else if ((key == GLFW_KEY_1 && action == GLFW_PRESS)) {
+		/*else if ((key == GLFW_KEY_1 && action == GLFW_PRESS)) {
 			switcher -= 0.1;
 		}
 		else if ((key == GLFW_KEY_2 && action == GLFW_PRESS)) {
 			switcher += 0.1;
-		}
+		}*/
 		else if ((key == GLFW_KEY_RIGHT && action == GLFW_PRESS)) {
 			rotateRight = true;
 		}
@@ -489,44 +506,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		else if ((key == GLFW_KEY_DOWN && action == GLFW_RELEASE)) {
 			rotateDown = false;
 		}
-		/*
-		if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-			moveForward = true;
-			// // allows camera to move forward and back
-
+		
+		else if ((key == GLFW_KEY_1 && action == GLFW_PRESS)) {
+			mo1 = true;
+			mo2 = false;
+			mo3 = false;
 		}
-
-		if (key == GLFW_KEY_W && action == GLFW_RELEASE) {
-			moveForward = false;
-
+		else if ((key == GLFW_KEY_2 && action == GLFW_PRESS)) {
+			mo1 = false;
+			mo2 = true;
+			mo3 = false;
 		}
-		if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-			moveBack = true;
-			// // allows camera to move forward and back
-
+		else if ((key == GLFW_KEY_3 && action == GLFW_PRESS)) {
+			mo1 = false;
+			mo2 = false;
+			mo3 = true;
 		}
-
-		if (key == GLFW_KEY_S && action == GLFW_RELEASE) {
-			moveBack = false;
-
-		}
-		if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-			moveLeft = true;
-			//
-		}
-
-		if (key == GLFW_KEY_A && action == GLFW_RELEASE) {
-			moveLeft = false;
-		}
-
-		if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-			moveRight = true;
-			//
-		}
-		if (key == GLFW_KEY_D && action == GLFW_RELEASE) {
-			moveRight = false;
-		}
-		*/
 		
 }
 

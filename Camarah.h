@@ -4,8 +4,8 @@
 #include "glm.hpp"
 #include "../glm/gtc/matrix_transform.hpp"
 #include "../glm/gtc/type_ptr.hpp"
+#include <vector>
 #include <iostream>
-extern bool moveForward, moveBack, moveRight, moveLeft;
 
 class Camara
 {
@@ -47,7 +47,7 @@ Camara::Camara(glm::vec3 position, glm::vec3 direction, GLfloat sensitivity, GLf
 	glm::vec3 up = glm::vec3(0.f, 1.f, 0.f); // world
 	camUp = glm::cross(camDir, camRight);
 
-	camRight = glm::normalize(glm::cross(camDir, camUp));
+	//camRight = glm::normalize(glm::cross(camDir, camUp));
 }
 
 void Camara::DoMoviment(GLFWwindow *window, GLfloat delta)
