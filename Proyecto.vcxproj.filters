@@ -21,6 +21,9 @@
     <ClCompile Include="ADSDA.cpp">
       <Filter>Archivos de recursos</Filter>
     </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Archivos de recursos</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -33,6 +36,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -59,6 +65,18 @@
       <Filter>Archivos de recursos</Filter>
     </None>
     <None Include="src\modelVertex.v">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\fragLC.f">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\vertexLC.v">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\minicube1f.f">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\minicube1v.v">
       <Filter>Archivos de recursos</Filter>
     </None>
   </ItemGroup>

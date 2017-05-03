@@ -20,23 +20,29 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ADSDA.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camarah.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\cubeFragment.f" />
     <None Include="src\cubeVertex.v" />
+    <None Include="src\fragLC.f" />
+    <None Include="src\minicube1f.f" />
+    <None Include="src\minicube1v.v" />
     <None Include="src\modelFrag.f" />
     <None Include="src\modelVertex.v" />
     <None Include="src\SimpleFragmentShader.fragmentshader" />
     <None Include="src\SimpleVertexShader.vertexshader" />
     <None Include="src\textureFragment.fragmentshader" />
     <None Include="src\textureVertex.vertexshader" />
+    <None Include="src\vertexLC.v" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3FC640D2-EFA2-403C-A406-DF29A85CFD5D}</ProjectGuid>

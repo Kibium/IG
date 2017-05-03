@@ -53,7 +53,7 @@ Camara::Camara(glm::vec3 position, glm::vec3 direction, GLfloat sensitivity, GLf
 void Camara::DoMoviment(GLFWwindow *window, GLfloat delta)
 {
 	camSpeed = 10*delta * 3;
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, 1);
+//	glfwSetInputMode(window, GLFW_STICKY_KEYS, 1);
 	int FORWARD = glfwGetKey(window, GLFW_KEY_W);
 	int BACKWARD = glfwGetKey(window, GLFW_KEY_S);
 	int RIGHT = glfwGetKey(window, GLFW_KEY_D);

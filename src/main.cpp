@@ -9,6 +9,7 @@
 #include <string>
 #include <chrono>
 #include "../Model.h"
+#include "../Object.h"
 
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 600;
@@ -17,20 +18,29 @@ GLsizei numBuffers = 3;
 float switcher = 0.0;
 float angleX = 0.0;
 float angleY = 0.0;
-bool rotateLeft, rotateRight, rotateUp, rotateDown; 
+bool rotateLeft, rotateRight, rotateUp, rotateDown;
 float aspectRatio = WIDTH / HEIGHT;
-float timeNow, lastTime, deltaTime; // timemit
+float timeNow, lastTime, deltaTime;
 bool firstMouse = true;
 GLfloat lastX = 400, lastY = 300;
 bool mo1, mo2, mo3 = false;
-Camara cam(glm::vec3(0.0f, 0.0f, 3.f), glm::normalize(glm::vec3(0.f, 0.f, 3.f) - glm::vec3(0.f, 0.f, 0.f)), 0.1, 60);
 
-float pitch, yaw = 0; // angles de rotació de sa càmera
+Camara cam(glm::vec3(0.0f, 2.0f, 3.f), glm::normalize(glm::vec3(0.f, 0.f, 3.f) - glm::vec3(0.f, 0.f, 0.f)), 0.1, 60);
+
+glm::vec3 cubRot = glm::vec3(0.f, 0.f, 0.f);
+glm::vec3 cubScal = glm::vec3(0.8f, 0.8f, 0.8f);
+glm::vec3 cubPos = glm::vec3(0.f, 0.f, 0.f);
+
+
+Object bigC(cubScal, cubRot, cubPos, cube);
+Object miniCube(glm::vec3(1.f, 0.1f, 0.1f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f), cube);
 
 void mouseController(GLFWwindow* window, double xpos, double ypos);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void scroller(GLFWwindow* window, double xoffset, double yoffset);
 void Do_Moviment(GLFWwindow *window);
+
+glm::vec3 lightPos(0.f, 2.f, 3.0f); // posición de la luz
 
 
 int main() {
@@ -64,7 +74,7 @@ int main() {
 		glfwTerminate();
 		return NULL;
 	}
-	
+
 	//viewPort
 	int screenWidth, screenHeight;
 	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
@@ -79,29 +89,31 @@ int main() {
 
 	//fondo
 	glClearColor(0.5, 0, 0.5, 1.0);
-	
+
 	//cargamos los shader
 	Shader squareShader("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
 	Shader textureShader("./src/textureVertex.vertexshader", "./src/textureFragment.fragmentshader");
 	Shader cubeShader("./src/cubeVertex.v", "./src/cubeFragment.f");
 	Shader modelShader("./src/modelVertex.v", "./src/modelFrag.f");
+	Shader lightShader("./src/vertexLC.v", "./src/fragLC.f");
+	Shader miniCubo1("./src/minicube1v.v", "./src/minicube1f.f");
 
-	//Model
-
+	//Models 3d
+#if(false)
 	Model m1("./Models/m1/nanosuit.obj");
 	Model m2("./Models/m2/eagle.obj");
 	Model m3("./Models/m3/dog.obj");
-
+#endif
 	// Definir el buffer de vertices
 
 	//cuadrado
-	GLfloat vertexBufferObject[] = { 
-				
+	GLfloat vertexBufferObject[] = {
+
 		0.5f, 0.5f, 0.f, //  0. top right
 		0.5f, -0.5f, 0.f,//   1. bot right
 		-0.5f, -0.5f, 0.f,//    2. bot left
 		-0.5f, 0.5f, 0.f, //  3. top left
-		
+
 	};
 
 	//textura
@@ -182,9 +194,10 @@ int main() {
 	};
 
 	// load textures
+	/*
 	int width, height;
 	unsigned char *img;
-	
+
 	GLint texAttrib = glGetAttribLocation(textureShader.Program, "texcoord");
 	glEnableVertexAttribArray(texAttrib);
 	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE,
@@ -202,8 +215,8 @@ int main() {
 	img = SOIL_load_image("ying.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
 	SOIL_free_image_data(img);
-	
-	
+
+
 	GLuint texture2;
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
@@ -216,15 +229,18 @@ int main() {
 	img = SOIL_load_image("dick.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
 	SOIL_free_image_data(img);
-	
+	*/
 	//ordre dels vertex dels triangles del quadrat
 	GLuint indexBufferObject[] = {
-		0, 1, 3, 
+		0, 1, 3,
 		1, 2, 3
 	};
 
-	
+	bigC.Initiate();
+	miniCube.Initiate();
+
 	// Crear los VBO, VAO y EBO y reservar memoria para el VAO, VBO y EBO
+	/*
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -246,7 +262,7 @@ int main() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(2);*/
+	glEnableVertexAttribArray(2);
 
 	//////////////Finishes config for the plane//////////////////////
 
@@ -258,39 +274,27 @@ int main() {
 	glEnableVertexAttribArray(2);
 
 	//////////////Finishes config for the cube//////////////////////
+	*/
 
-
-	GLint variableShader =  glGetUniformLocation(squareShader.Program, "Sion"); //enllaçar amb variable dins els " "
+	GLint variableShader = glGetUniformLocation(squareShader.Program, "Sion"); //enllaçar amb variable dins els " "
 	GLint imgSwitcher = glGetUniformLocation(textureShader.Program, "alternador");
 	GLint uniTrans = glGetUniformLocation(textureShader.Program, "trans");
 	GLint uniView = glGetUniformLocation(textureShader.Program, "view");
 	GLint uniProj = glGetUniformLocation(textureShader.Program, "proj");
 
-	GLint uniModel = glGetUniformLocation(cubeShader.Program, "model");
-	GLint uniView2 = glGetUniformLocation(cubeShader.Program, "view");
-	GLint uniProj2 = glGetUniformLocation(cubeShader.Program, "proj");
+	//	GLint uniModel = glGetUniformLocation(lightShader.Program, "model");
+	GLint uniView2 = glGetUniformLocation(lightShader.Program, "view");
+	GLint uniProj2 = glGetUniformLocation(lightShader.Program, "proj");
 
-	
+	GLint uniView3 = glGetUniformLocation(miniCubo1.Program, "view");
+	GLint uniProj3 = glGetUniformLocation(miniCubo1.Program, "proj");
 
-	//Camera
-
-	/*cameraPos = glm::vec3(0.f, 0.f, 3.f);// posicio de sa càmara
-	target = glm::vec3(0.0f, 0.0f, 0.0f);
-	
-	direction = glm::normalize(cameraPos - target);
-
-	::right = glm::normalize(glm::cross(direction, glm::vec3(0.f, 1.f, 0.f)));
-
-	up = glm::cross(direction, ::right);
-
-	//glm::mat4 lookAt = glm::lookAt(cameraPos, direction, up);
-*/
 	//Matrius
 
 	glm::mat4 model, helper;
 
 	GLfloat radio = 8.0f;
-	
+
 	glm::mat4 view;
 	glEnable(GL_DEPTH_TEST);
 
@@ -298,17 +302,19 @@ int main() {
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-
+	bigC.Scale(cubScal);
+	miniCube.Move(glm::vec3(0.f, 2.f, 3.0f));
+	miniCube.Scale(glm::vec3(0.1f, 0.1f, 0.1f));
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window)) {
-		lastTime= glfwGetTime();
-		
+		lastTime = glfwGetTime();
+
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glViewport(0, 0, screenWidth, screenHeight);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // borrar buffer de colors i de profunditat
 
 		//Establecer el color de fondo
-		glClearColor(0.5, 0.2, 1.0, 1.0);
+		glClearColor(0.f, 0.f, 0.f, 1.0);
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -321,14 +327,8 @@ int main() {
 		auto t_now = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
 
-		//Coses de sa càmera
-		GLfloat X = sin(glfwGetTime()) * radio;
-		GLfloat Z = cos(glfwGetTime()) * radio;
 
-		/*direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-		direction.y = sin(glm::radians(pitch));
-		direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-		*/
+
 		glm::mat4 proj = glm::perspective(glm::radians(cam.GetFOV()), aspectRatio, 1.0f, 1000.0f);
 
 		view = cam.LookAt();
@@ -336,17 +336,17 @@ int main() {
 		//establecer el shader
 
 		//squareShader.USE(); //descomentar aixo si volem veure es quadrat
-	    //textureShader.USE();
+		//textureShader.USE();
 		//cubeShader.USE();
-		modelShader.USE();
-
+		//modelShader.USE();
 		// passar valors a les variables dels shaders
-		glUniform1f(variableShader, abs(sin(glfwGetTime())/2)); 
+#if(true)
+		glUniform1f(variableShader, abs(sin(glfwGetTime()) / 2));
 		glUniform1f(imgSwitcher, switcher);
-		
+
 		glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
-
+#endif
 		//comprovar si rotar foto
 		if (rotateLeft)
 			angleY += 0.2;
@@ -357,42 +357,59 @@ int main() {
 			angleX -= 0.2;
 		if (rotateUp)
 			angleX += 0.2;
-		
+
 		// mesclar foto
-		if (switcher > 1) 
+		if (switcher > 1)
 			switcher = 1;
-		
+
 		if (switcher < 0.1)
 			switcher = 0;
 
-		//comprovar rotar camara
-
-
-		/*if (moveForward) cameraPos += direction*camSpeed;
-		if (moveBack) cameraPos -= direction*camSpeed;
-		if (moveLeft) cameraPos += glm::normalize(cross(direction, up))* camSpeed;
-		if (moveRight) cameraPos -= glm::normalize(cross(direction, up))* camSpeed;
-		*/
 		//activar textures
-		glActiveTexture(GL_TEXTURE0);
+		/*glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glUniform1i(glGetUniformLocation(textureShader.Program, "tex1"), 0);
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(textureShader.Program, "tex2"), 1);
+		*/
 
-		glBindVertexArray(VAO); {
+		lightShader.USE();
+		bigC.Draw();
+
+		bigC.Move(cubPos);
+		bigC.Rotate(cubRot);
+		glUniform3f(glGetUniformLocation(lightShader.Program, "objectColor"), 1.0f, 0.5f, 0.31f);
+		glUniform3f(glGetUniformLocation(lightShader.Program, "lightColor"), 0.6f, 0.0f, 0.5);
+		glUniform3f(glGetUniformLocation(lightShader.Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniView2, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj2, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
 
 
+		miniCubo1.USE();
+		miniCube.Draw();
 
-			//cubo controlable
+		glUniformMatrix4fv(glGetUniformLocation(miniCubo1.Program, "model"), 1, GL_FALSE, glm::value_ptr(miniCube.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniView3, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj3, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+
+
+		//bind antic VAO
+		/*glBindVertexArray(VAO); {
+
+			//dibujado models 3d
+#if(false)
 			if(mo1)
 			m1.Draw(modelShader);
 			if(mo2)
 				m2.Draw(modelShader);
 			if(mo3)
 				m3.Draw(modelShader);
+#endif
+			//cubo controlable
+
 			glm::mat4 trans, rot, rot1,  rot2;
 			trans = glm::translate(trans, CubesPositionBuffer[0]); // matriu de translació
 			rot1 = glm::rotate(rot, glm::radians(angleY), glm::vec3(0.0f, 1.f, 0.0f)); // matriu que controla rotació en Y
@@ -407,25 +424,25 @@ int main() {
 			for (int i = 1; i < 10; i++) {
 				glm::mat4 trans, rot;
 				trans = glm::translate(trans, CubesPositionBuffer[i]);
-				rot = glm::rotate(rot, (-time)*glm::radians(180.f), glm::vec3(1.0f, 1.f, 0.0f)); 
+				rot = glm::rotate(rot, (-time)*glm::radians(180.f), glm::vec3(1.0f, 1.f, 0.0f));
 				model = trans * rot;
 				glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				glDrawArrays(GL_TRIANGLES, 0, 36);
 			}
-		
-#endif		
+
+#endif
 		}
-		
+		*/
 		// posició de sa càmera
-		//camSpeed = speedConstant*deltaTime*3;
 
 		//pintar el VAO
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*)0);
 
 		// cuadrat que s'estira
+#if(false)
 		if (WIDEFRAME) {
-			
+
 			//pintar amb linies
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -442,6 +459,7 @@ int main() {
 			glBindVertexArray(0);
 
 		}
+#endif
 		timeNow = glfwGetTime();
 		deltaTime = timeNow - lastTime;
 		// Swap the screen buffers. !!!!!!!!Molt important!!!!!
@@ -452,9 +470,9 @@ int main() {
 	}
 
 	//rentar sa memoria
-	glDeleteVertexArrays(1, &VAO);
+	/*glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
+	glDeleteBuffers(1, &EBO);*/
 	// Terminate GLFW, clearing any resources allocated by GLFW.
 	::exit(EXIT_SUCCESS);
 }
@@ -465,9 +483,9 @@ void Do_Moviment(GLFWwindow *window) {
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	//TODO, comprobar que la tecla pulsada es escape para cerrar la aplicación y la tecla w para cambiar a modo widwframe
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) 
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
-
+	/*
 		else if (key == GLFW_KEY_F && action == GLFW_PRESS && WIDEFRAME == false) {
 			WIDEFRAME = true;
 
@@ -480,7 +498,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 		else if ((key == GLFW_KEY_2 && action == GLFW_PRESS)) {
 			switcher += 0.1;
-		}*/
+		}
 		else if ((key == GLFW_KEY_RIGHT && action == GLFW_PRESS)) {
 			rotateRight = true;
 		}
@@ -506,7 +524,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		else if ((key == GLFW_KEY_DOWN && action == GLFW_RELEASE)) {
 			rotateDown = false;
 		}
-		
+
 		else if ((key == GLFW_KEY_1 && action == GLFW_PRESS)) {
 			mo1 = true;
 			mo2 = false;
@@ -521,8 +539,42 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			mo1 = false;
 			mo2 = false;
 			mo3 = true;
-		}
-		
+		}*/
+
+		//mover cubo grande 
+	else if (key == GLFW_KEY_I && action == GLFW_PRESS)
+		cubPos.y = 0.001f;
+	else if (key == GLFW_KEY_I && action == GLFW_RELEASE)
+		cubPos.y = 0.f;
+
+	else if (key == GLFW_KEY_K && action == GLFW_PRESS)
+		cubPos.y = -0.001f;
+	else if (key == GLFW_KEY_K && action == GLFW_RELEASE)
+		cubPos.y = 0.f;
+
+	else if (key == GLFW_KEY_J && action == GLFW_PRESS)
+		cubPos.x = 0.001f;
+	else if (key == GLFW_KEY_J && action == GLFW_RELEASE)
+		cubPos.x = 0.f;
+
+	else if (key == GLFW_KEY_L && action == GLFW_PRESS)
+		cubPos.x = -0.001f;
+	else if (key == GLFW_KEY_L && action == GLFW_RELEASE)
+		cubPos.x = 0.f;
+
+	else if (key == GLFW_KEY_U && action == GLFW_PRESS)
+		cubPos.z = 0.001f;
+	else if (key == GLFW_KEY_U && action == GLFW_RELEASE)
+		cubPos.z = 0.f;
+
+	else if (key == GLFW_KEY_O && action == GLFW_PRESS)
+		cubPos.z = -0.001f;
+	else if (key == GLFW_KEY_O && action == GLFW_RELEASE)
+		cubPos.z = 0.f;
+
+
+
+
 }
 
 void mouseController(GLFWwindow* window, double xpos, double ypos) { // working!
