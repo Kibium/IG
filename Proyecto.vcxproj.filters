@@ -79,5 +79,23 @@
     <None Include="src\minicube1v.v">
       <Filter>Archivos de recursos</Filter>
     </None>
+    <None Include="src\pointLight.f">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\pointLight.v">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\spotLight.f">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\spotLight.v">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\material.f">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="src\material.v">
+      <Filter>Archivos de recursos</Filter>
+    </None>
   </ItemGroup>
 </Project>

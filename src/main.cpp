@@ -25,6 +25,8 @@ bool firstMouse = true;
 GLfloat lastX = 400, lastY = 300;
 bool mo1, mo2, mo3 = false;
 
+glm::vec3 lightColor = glm::vec3(0.6f, 0.0f, 0.5);
+
 Camara cam(glm::vec3(0.0f, 2.0f, 3.f), glm::normalize(glm::vec3(0.f, 0.f, 3.f) - glm::vec3(0.f, 0.f, 0.f)), 0.1, 60);
 
 glm::vec3 cubRot = glm::vec3(0.f, 0.f, 0.f);
@@ -95,8 +97,16 @@ int main() {
 	Shader textureShader("./src/textureVertex.vertexshader", "./src/textureFragment.fragmentshader");
 	Shader cubeShader("./src/cubeVertex.v", "./src/cubeFragment.f");
 	Shader modelShader("./src/modelVertex.v", "./src/modelFrag.f");
-	Shader lightShader("./src/vertexLC.v", "./src/fragLC.f");
 	Shader miniCubo1("./src/minicube1v.v", "./src/minicube1f.f");
+
+	//Material
+	Shader materialShader("./src/material.v", "./src/material.f");
+
+	//Direcional
+	Shader lightShader("./src/vertexLC.v", "./src/fragLC.f");
+
+
+
 
 	//Models 3d
 #if(false)
@@ -289,6 +299,11 @@ int main() {
 	GLint uniView3 = glGetUniformLocation(miniCubo1.Program, "view");
 	GLint uniProj3 = glGetUniformLocation(miniCubo1.Program, "proj");
 
+	GLint uniView4 = glGetUniformLocation(materialShader.Program, "view");
+	GLint uniProj4 = glGetUniformLocation(materialShader.Program, "proj");
+
+
+
 	//Matrius
 
 	glm::mat4 model, helper;
@@ -380,13 +395,45 @@ int main() {
 
 		bigC.Move(cubPos);
 		bigC.Rotate(cubRot);
+
+		//Escena con cublo de luz
+#if(true)
 		glUniform3f(glGetUniformLocation(lightShader.Program, "objectColor"), 1.0f, 0.5f, 0.31f);
-		glUniform3f(glGetUniformLocation(lightShader.Program, "lightColor"), 0.6f, 0.0f, 0.5);
+		glUniform3f(glGetUniformLocation(lightShader.Program, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
 		glUniform3f(glGetUniformLocation(lightShader.Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+		glUniform3f(glGetUniformLocation(materialShader.Program, "viewPos"), cam.camPos.x, cam.camPos.y, cam.camPos.z);
+
 		glUniformMatrix4fv(uniView2, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
 		glUniformMatrix4fv(uniProj2, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+#endif
 
+#if(false)
+		//Escena con cubo y material
+
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+		glUniform3f(glGetUniformLocation(materialShader.Program, "viewPos"), cam.camPos.x, cam.camPos.y, cam.camPos.z);
+
+		//Luz
+		glUniform3f(glGetUniformLocation(materialShader.Program, "light.ambient"), 0.2f, 0.2f, 0.2f);
+		glUniform3f(glGetUniformLocation(materialShader.Program, "light.diffuse"), 0.5f, 0.5f, 0.5f);
+		glUniform3f(glGetUniformLocation(materialShader.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(materialShader.Program, "light.position"), lightPos.x, lightPos.y, lightPos.z);
+
+		//Material
+		glUniform3f(glGetUniformLocation(materialShader.Program, "material.ambient"), 1.0f, 0.5f, 0.31f);
+		glUniform3f(glGetUniformLocation(materialShader.Program, "material.diffuse"), 1.0f, 0.5f, 0.31f);
+		glUniform3f(glGetUniformLocation(materialShader.Program, "material.specular"), 0.5f, 0.5f, 0.5f);
+		glUniform1f(glGetUniformLocation(materialShader.Program, "material.shininess"), 32.f);
+
+
+
+		glUniformMatrix4fv(glGetUniformLocation(materialShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+
+		glUniformMatrix4fv(uniView4, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj4, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+#endif
 
 		miniCubo1.USE();
 		miniCube.Draw();
@@ -571,6 +618,26 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		cubPos.z = -0.001f;
 	else if (key == GLFW_KEY_O && action == GLFW_RELEASE)
 		cubPos.z = 0.f;
+
+	else if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+		cubRot.y = 0.05f;
+	else if (key == GLFW_KEY_RIGHT && action == GLFW_RELEASE)
+		cubRot.y = 0.f;
+
+	else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+		cubRot.y = -0.05f;
+	else if (key == GLFW_KEY_LEFT && action == GLFW_RELEASE)
+		cubRot.y = 0.f;
+
+	else if (key == GLFW_KEY_UP && action == GLFW_PRESS)
+		cubRot.x = -0.05f;
+	else if (key == GLFW_KEY_UP && action == GLFW_RELEASE)
+		cubRot.x = 0.f;
+
+	else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS)
+		cubRot.x = 0.05f;
+	else if (key == GLFW_KEY_DOWN && action == GLFW_RELEASE)
+		cubRot.x = 0.f;
 
 
 

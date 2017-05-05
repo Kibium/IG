@@ -18,9 +18,9 @@ public:
 	GLfloat GetFOV();
 	bool moveForward, moveBack, moveLeft, moveRight = false;
 
+	glm::vec3 camPos;
 
 private:
-	glm::vec3 camPos;
 	glm::vec3 cameraFront;
 	glm::vec3 camUp;
 	glm::vec3 camRight;
