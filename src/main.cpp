@@ -102,6 +102,9 @@ int main() {
 	//Material
 	Shader materialShader("./src/material.v", "./src/material.f");
 
+	//Material y textura
+	Shader niceCubem8("./src/textMat.v", "./src/textMat.f");
+
 	//Direcional
 	Shader lightShader("./src/vertexLC.v", "./src/fragLC.f");
 
@@ -144,8 +147,7 @@ int main() {
 
 	};
 
-	//cube
-
+	//cubo simple
 	GLfloat VertexBufferCube[] = {
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 		0.5f , -0.5f, -0.5f,  1.0f, 0.0f,
@@ -203,7 +205,7 @@ int main() {
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	// load textures
+	// load textures, cubo simple
 	/*
 	int width, height;
 	unsigned char *img;
@@ -240,6 +242,36 @@ int main() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, img);
 	SOIL_free_image_data(img);
 	*/
+
+	// Cargar texturas, cubo con luz
+	GLuint diffuseMap, specularMap;
+	glGenTextures(1, &diffuseMap);
+	glGenTextures(1, &specularMap);
+	int width, height;
+	unsigned char* image;
+	// Diffuse map
+	image = SOIL_load_image("sapphire.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	glBindTexture(GL_TEXTURE_2D, diffuseMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	// Specular map
+	image = SOIL_load_image("sapphire_specular.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	glBindTexture(GL_TEXTURE_2D, specularMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
 	//ordre dels vertex dels triangles del quadrat
 	GLuint indexBufferObject[] = {
 		0, 1, 3,
@@ -302,6 +334,8 @@ int main() {
 	GLint uniView4 = glGetUniformLocation(materialShader.Program, "view");
 	GLint uniProj4 = glGetUniformLocation(materialShader.Program, "proj");
 
+	GLint uniView5 = glGetUniformLocation(niceCubem8.Program, "view");
+	GLint uniProj5 = glGetUniformLocation(niceCubem8.Program, "proj");
 
 
 	//Matrius
@@ -316,6 +350,8 @@ int main() {
 	//Raton
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	//Inicializar algunos parámetros de los cubos
 
 	bigC.Scale(cubScal);
 	miniCube.Move(glm::vec3(0.f, 2.f, 3.0f));
@@ -354,6 +390,7 @@ int main() {
 		//textureShader.USE();
 		//cubeShader.USE();
 		//modelShader.USE();
+
 		// passar valors a les variables dels shaders
 #if(true)
 		glUniform1f(variableShader, abs(sin(glfwGetTime()) / 2));
@@ -380,7 +417,7 @@ int main() {
 		if (switcher < 0.1)
 			switcher = 0;
 
-		//activar textures
+		//activar textures cubo simple
 		/*glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glUniform1i(glGetUniformLocation(textureShader.Program, "tex1"), 0);
@@ -390,14 +427,16 @@ int main() {
 		glUniform1i(glGetUniformLocation(textureShader.Program, "tex2"), 1);
 		*/
 
-		lightShader.USE();
-		bigC.Draw();
+		
+
+		//Shader a canviar per sa iluminació
+		niceCubem8.USE();
 
 		bigC.Move(cubPos);
 		bigC.Rotate(cubRot);
 
 		//Escena con cublo de luz
-#if(true)
+#if(false)
 		glUniform3f(glGetUniformLocation(lightShader.Program, "objectColor"), 1.0f, 0.5f, 0.31f);
 		glUniform3f(glGetUniformLocation(lightShader.Program, "lightColor"), lightColor.x, lightColor.y, lightColor.z);
 		glUniform3f(glGetUniformLocation(lightShader.Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
@@ -407,7 +446,7 @@ int main() {
 		glUniformMatrix4fv(uniProj2, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
 		glUniformMatrix4fv(glGetUniformLocation(lightShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
 #endif
-
+		//Escena amb es material
 #if(false)
 		//Escena con cubo y material
 
@@ -434,6 +473,31 @@ int main() {
 		glUniformMatrix4fv(uniView4, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
 		glUniformMatrix4fv(uniProj4, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
 #endif
+		//Escena amb textura i material
+
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
+		glUniform3f(glGetUniformLocation(niceCubem8.Program, "viewPos"), cam.camPos.x, cam.camPos.y, cam.camPos.z);
+		glUniform3f(glGetUniformLocation(niceCubem8.Program, "light.position"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(glGetUniformLocation(niceCubem8.Program, "light.ambient"), 0.2f, 0.2f, 0.2f);
+		glUniform3f(glGetUniformLocation(niceCubem8.Program, "light.diffuse"), 0.5f, 0.5f, 0.5f);
+		glUniform3f(glGetUniformLocation(niceCubem8.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(niceCubem8.Program, "material.shininess"), 32.f);
+		glUniform1i(glGetUniformLocation(niceCubem8.Program, "material.diffuse"), 0);
+		glUniform1i(glGetUniformLocation(niceCubem8.Program, "material.specular"), 1);
+
+		glUniformMatrix4fv(uniView5, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj5, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(glGetUniformLocation(niceCubem8.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+
+		//activar texturas cubo de luz
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
+		bigC.Draw();
 
 		miniCubo1.USE();
 		miniCube.Draw();

@@ -46,6 +46,8 @@
     <None Include="src\SimpleVertexShader.vertexshader" />
     <None Include="src\spotLight.f" />
     <None Include="src\spotLight.v" />
+    <None Include="src\textMat.f" />
+    <None Include="src\textMat.v" />
     <None Include="src\textureFragment.fragmentshader" />
     <None Include="src\textureVertex.vertexshader" />
     <None Include="src\vertexLC.v" />
