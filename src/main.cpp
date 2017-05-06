@@ -108,6 +108,12 @@ int main() {
 	//Direcional
 	Shader lightShader("./src/vertexLC.v", "./src/fragLC.f");
 
+	//Puntual
+	Shader pointShader("./src/pointLight.v", "./src/pointLight.f");
+
+	//Focal
+	Shader spotShader("./src/spotLight.v", "./src/spotLight.f");
+
 
 
 
@@ -337,10 +343,17 @@ int main() {
 	GLint uniView5 = glGetUniformLocation(niceCubem8.Program, "view");
 	GLint uniProj5 = glGetUniformLocation(niceCubem8.Program, "proj");
 
+	GLint uniView6 = glGetUniformLocation(pointShader.Program, "view");
+	GLint uniProj6 = glGetUniformLocation(pointShader.Program, "proj");
 
+	GLint uniView7 = glGetUniformLocation(spotShader.Program, "view");
+	GLint uniProj7 = glGetUniformLocation(spotShader.Program, "proj");
+	GLint lightSpotCutOffLoc = glGetUniformLocation(spotShader.Program, "light.cutOff");
+	GLint lightSpotOuterCutOffLoc = glGetUniformLocation(spotShader.Program, "light.outerCutOff");
+	GLint lightSpotdirLoc = glGetUniformLocation(spotShader.Program, "light.direction");
 	//Matrius
 
-	glm::mat4 model, helper;
+	glm::mat4 model;
 
 	GLfloat radio = 8.0f;
 
@@ -430,7 +443,7 @@ int main() {
 		
 
 		//Shader a canviar per sa iluminació
-		niceCubem8.USE();
+		spotShader.USE();
 
 		bigC.Move(cubPos);
 		bigC.Rotate(cubRot);
@@ -448,7 +461,6 @@ int main() {
 #endif
 		//Escena amb es material
 #if(false)
-		//Escena con cubo y material
 
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
@@ -474,7 +486,7 @@ int main() {
 		glUniformMatrix4fv(uniProj4, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
 #endif
 		//Escena amb textura i material
-
+#if(false)
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
 
@@ -497,6 +509,73 @@ int main() {
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
+#endif
+
+		//Point Light
+#if(false)
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
+		glUniform3f(glGetUniformLocation(pointShader.Program, "viewPos"), cam.camPos.x, cam.camPos.y, cam.camPos.z);
+		//Light
+		glUniform3f(glGetUniformLocation(pointShader.Program, "light.position"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(glGetUniformLocation(pointShader.Program, "light.ambient"), 0.2f, 0.2f, 0.2f);
+		glUniform3f(glGetUniformLocation(pointShader.Program, "light.diffuse"), 0.5f, 0.5f, 0.5f);
+		glUniform3f(glGetUniformLocation(pointShader.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(pointShader.Program, "light.constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(pointShader.Program, "light.linear"), 0.09);
+		glUniform1f(glGetUniformLocation(pointShader.Program, "light.quadratic"), 0.032);
+
+		//Material
+		glUniform1f(glGetUniformLocation(pointShader.Program, "material.shininess"), 32.f);
+		glUniform1i(glGetUniformLocation(pointShader.Program, "material.diffuse"), 0);
+		glUniform1i(glGetUniformLocation(pointShader.Program, "material.specular"), 1);
+
+		glUniformMatrix4fv(uniView6, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj6, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(glGetUniformLocation(pointShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+
+																																   //activar texturas cubo de luz
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
+#endif
+
+#if(true)
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
+		glUniform3f(glGetUniformLocation(spotShader.Program, "viewPos"), cam.camPos.x, cam.camPos.y, cam.camPos.z);
+		//Light
+		glUniform1f(lightSpotCutOffLoc, glm::cos(glm::radians(12.5f)));
+		glUniform1f(lightSpotOuterCutOffLoc, glm::cos(glm::radians(17.5f)));
+		glUniform3f(lightSpotdirLoc, cam.cameraFront.x, cam.cameraFront.y, cam.cameraFront.z);
+		glUniform3f(glGetUniformLocation(spotShader.Program, "light.position"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(glGetUniformLocation(spotShader.Program, "light.ambient"), 0.2f, 0.2f, 0.2f);
+		glUniform3f(glGetUniformLocation(spotShader.Program, "light.diffuse"), 0.5f, 0.5f, 0.5f);
+		glUniform3f(glGetUniformLocation(spotShader.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(spotShader.Program, "light.constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(spotShader.Program, "light.linear"), 0.09);
+		glUniform1f(glGetUniformLocation(spotShader.Program, "light.quadratic"), 0.032);
+
+		//Material
+		glUniform1f(glGetUniformLocation(spotShader.Program, "material.shininess"), 32.f);
+		glUniform1i(glGetUniformLocation(spotShader.Program, "material.diffuse"), 0);
+		glUniform1i(glGetUniformLocation(spotShader.Program, "material.specular"), 1);
+
+		glUniformMatrix4fv(uniView7, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj7, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(glGetUniformLocation(spotShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+
+																																	//activar texturas cubo de luz
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
+#endif
 		bigC.Draw();
 
 		miniCubo1.USE();
