@@ -34,8 +34,7 @@ glm::vec3 cubScal = glm::vec3(0.8f, 0.8f, 0.8f);
 glm::vec3 cubPos = glm::vec3(0.f, 0.f, 0.f);
 
 
-Object bigC(cubScal, cubRot, cubPos, cube);
-Object miniCube(glm::vec3(1.f, 0.1f, 0.1f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f), cube);
+
 
 void mouseController(GLFWwindow* window, double xpos, double ypos);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -114,8 +113,29 @@ int main() {
 	//Focal
 	Shader spotShader("./src/spotLight.v", "./src/spotLight.f");
 
+	//Multilight
+	Shader multiShader("./src/multilight.v", "./src/multilight.f");
 
+	//Objects
 
+	glm::vec3 lightPositions[] = {
+		glm::vec3(1.f,  1.f,  0.0f),
+		glm::vec3(2.f, 1.f, 0.0f),
+		glm::vec3(3.0f,  1.0f, 0.0f),
+		glm::vec3(4.0f,  1.0f, 0.0f),
+		glm::vec3(5.0f,  1.0f, 0.0f)
+
+	};
+
+	Object bigC(cubScal, cubRot, cubPos, cube);
+	Object miniCube(glm::vec3(1.f, 0.1f, 0.1f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f), cube);
+	Object pointCube1(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.f, 1.f, 1.f), cube);
+	Object pointCube2(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.f, 1.f, 1.f), cube);
+	Object spotCube1(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.f, 1.f, 1.f), cube);
+	Object spotCube2(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.f, 1.f, 1.f), cube);
+	Object directional(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.f, 1.f, 1.f), cube);
+
+	Object bigCube(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.f, 1.f, 1.f), cube);
 
 	//Models 3d
 #if(false)
@@ -286,7 +306,12 @@ int main() {
 
 	bigC.Initiate();
 	miniCube.Initiate();
-
+	pointCube1.Initiate();
+	pointCube2.Initiate();
+	spotCube1.Initiate();
+	spotCube2.Initiate();
+	directional.Initiate();
+	bigCube.Initiate();
 	// Crear los VBO, VAO y EBO y reservar memoria para el VAO, VBO y EBO
 	/*
 	GLuint VAO;
@@ -351,6 +376,9 @@ int main() {
 	GLint lightSpotCutOffLoc = glGetUniformLocation(spotShader.Program, "light.cutOff");
 	GLint lightSpotOuterCutOffLoc = glGetUniformLocation(spotShader.Program, "light.outerCutOff");
 	GLint lightSpotdirLoc = glGetUniformLocation(spotShader.Program, "light.direction");
+
+	GLint uniView8 = glGetUniformLocation(multiShader.Program, "view");
+	GLint uniProj8 = glGetUniformLocation(multiShader.Program, "proj");
 	//Matrius
 
 	glm::mat4 model;
@@ -369,6 +397,27 @@ int main() {
 	bigC.Scale(cubScal);
 	miniCube.Move(glm::vec3(0.f, 2.f, 3.0f));
 	miniCube.Scale(glm::vec3(0.1f, 0.1f, 0.1f));
+
+	spotCube1.Move(lightPositions[0]);
+	spotCube1.Scale(glm::vec3(0.1f, 0.1f, 0.1f));
+
+	pointCube1.Move(lightPositions[1]);
+	pointCube1.Scale(glm::vec3(0.1f, 0.1f, 0.1f));
+
+	spotCube2.Move(lightPositions[2]);
+	spotCube2.Scale(glm::vec3(0.1f, 0.1f, 0.1f));
+
+	pointCube2.Move(lightPositions[3]);
+	pointCube2.Scale(glm::vec3(0.1f, 0.1f, 0.1f));
+
+
+	directional.Move(lightPositions[4]);
+	directional.Scale(glm::vec3(0.1f, 0.1f, 0.1f));
+
+	bigCube.Move(glm::vec3(3.f, 1.f, 0.f));
+	bigCube.Scale(glm::vec3(5.f, 5.f, 5.f));
+
+
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window)) {
 		lastTime = glfwGetTime();
@@ -412,7 +461,7 @@ int main() {
 		glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
 #endif
-		//comprovar si rotar foto
+		//comprovar si rotar foto o cubo
 		if (rotateLeft)
 			angleY += 0.2;
 		if (rotateRight)
@@ -443,7 +492,7 @@ int main() {
 		
 
 		//Shader a canviar per sa iluminació
-		spotShader.USE();
+		multiShader.USE();
 
 		bigC.Move(cubPos);
 		bigC.Rotate(cubRot);
@@ -510,7 +559,6 @@ int main() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 #endif
-
 		//Point Light
 #if(false)
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
@@ -542,8 +590,8 @@ int main() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 #endif
-
-#if(true)
+		//spotLight
+#if(false)
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
 
@@ -576,14 +624,107 @@ int main() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 #endif
+		//multilight
+#if(true)
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
+		glUniform3f(glGetUniformLocation(multiShader.Program, "viewPos"), cam.camPos.x, cam.camPos.y, cam.camPos.z);
+		//directional
+		glUniform3f(glGetUniformLocation(multiShader.Program, "dirLight.direction"), 0.f, -0.3f, -0.8f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "dirLight.ambient"), 0.05f, 0.05f, 0.05f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "dirLight.diffuse"), 0.4f, 0.4f, 0.4f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "dirLight.specular"), 0.5f, 0.5f, 0.5f);
+		// Point light 1
+		glUniform3f(glGetUniformLocation(multiShader.Program, "pointLights[0].position"), lightPositions[0].x, lightPositions[0].y, lightPositions[0].z);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "pointLights[0].ambient"), 0.05f, 0.05f, 0.05f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "pointLights[0].diffuse"), 0.8f, 0.8f, 0.8f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "pointLights[0].specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "pointLights[0].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "pointLights[0].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "pointLights[0].quadratic"), 0.032);
+		// Point light 2
+		glUniform3f(glGetUniformLocation(multiShader.Program, "pointLights[1].position"), lightPositions[1].x, lightPositions[1].y, lightPositions[1].z);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "pointLights[1].ambient"), 0.05f, 0.05f, 0.05f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "pointLights[1].diffuse"), 0.8f, 0.8f, 0.8f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "pointLights[1].specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "pointLights[1].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "pointLights[1].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "pointLights[1].quadratic"), 0.032);
+		
+		// SpotLight 1
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[0].position"), lightPositions[2].x, lightPositions[2].y, lightPositions[2].z);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[0].direction"), 0.f, -1.f, 0.f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[0].ambient"), 0.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[0].diffuse"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[0].specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[0].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[0].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[0].quadratic"), 0.032);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[0].cutOff"), glm::cos(glm::radians(12.5f)));
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[0].outerCutOff"), glm::cos(glm::radians(15.0f)));
+
+		// SpotLight 2
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[1].position"), lightPositions[3].x, lightPositions[3].y, lightPositions[3].z);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[1].direction"), 0.f, -1.f, 0.f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[1].ambient"), 0.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[1].diffuse"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(multiShader.Program, "spotLights[1].specular"), 1.0f, 1.0f, 1.0f);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[1].constant"), 1.0f);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[1].linear"), 0.09);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[1].quadratic"), 0.032);
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[1].cutOff"), glm::cos(glm::radians(12.5f)));
+		glUniform1f(glGetUniformLocation(multiShader.Program, "spotLights[1].outerCutOff"), glm::cos(glm::radians(15.0f)));
+
+		glUniform1f(glGetUniformLocation(multiShader.Program, "material.shininess"), 32.f);
+		glUniform1i(glGetUniformLocation(multiShader.Program, "material.diffuse"), 0);
+		glUniform1i(glGetUniformLocation(multiShader.Program, "material.specular"), 1);
+
+		glUniformMatrix4fv(uniView8, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj8, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(glGetUniformLocation(multiShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(bigC.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+
+
+
+
+																																   //activar texturas cubo de luz
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
+#endif
 		bigC.Draw();
+		bigCube.Draw();
 
 		miniCubo1.USE();
-		miniCube.Draw();
 
 		glUniformMatrix4fv(glGetUniformLocation(miniCubo1.Program, "model"), 1, GL_FALSE, glm::value_ptr(miniCube.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
 		glUniformMatrix4fv(uniView3, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
 		glUniformMatrix4fv(uniProj3, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		miniCube.Draw();
+
+		glUniformMatrix4fv(glGetUniformLocation(miniCubo1.Program, "model"), 1, GL_FALSE, glm::value_ptr(spotCube1.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniView3, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj3, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		spotCube1.Draw();
+
+		glUniformMatrix4fv(glGetUniformLocation(miniCubo1.Program, "model"), 1, GL_FALSE, glm::value_ptr(spotCube2.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniView3, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj3, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		spotCube2.Draw();
+
+		glUniformMatrix4fv(glGetUniformLocation(miniCubo1.Program, "model"), 1, GL_FALSE, glm::value_ptr(pointCube2.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniView3, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj3, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		pointCube2.Draw();
+
+		glUniformMatrix4fv(glGetUniformLocation(miniCubo1.Program, "model"), 1, GL_FALSE, glm::value_ptr(pointCube1.GetModelMatrix())); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniView3, 1, GL_FALSE, glm::value_ptr(view)); // transferir el que val model al uniform on apunta uniModel
+		glUniformMatrix4fv(uniProj3, 1, GL_FALSE, glm::value_ptr(proj)); // transferir el que val model al uniform on apunta uniModel
+		pointCube1.Draw();
+
+		
 
 
 		//bind antic VAO

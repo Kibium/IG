@@ -38,8 +38,16 @@
     <None Include="src\material.v" />
     <None Include="src\minicube1f.f" />
     <None Include="src\minicube1v.v" />
+    <None Include="src\minicube2.f" />
+    <None Include="src\minicube2.v" />
+    <None Include="src\minicube3.f" />
+    <None Include="src\minicube3.v" />
+    <None Include="src\minicube4.f" />
+    <None Include="src\minicube4.v" />
     <None Include="src\modelFrag.f" />
     <None Include="src\modelVertex.v" />
+    <None Include="src\multilight.f" />
+    <None Include="src\multilight.v" />
     <None Include="src\pointLight.f" />
     <None Include="src\pointLight.v" />
     <None Include="src\SimpleFragmentShader.fragmentshader" />
